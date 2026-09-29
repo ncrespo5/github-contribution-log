@@ -1,158 +1,151 @@
-# Contribution #1: Add a svg icon for the crash cymbal
+# Contribution #1: Offer Tracker — Empty State for Filtered Results
 
-**Contribution Number:** 1  
-**Student:** Nyla Crespo 
-**Issue:** [GitHub Issue Link](https://github.com/Babali42/DrumBeatRepo/issues/511)  
-**Status:** Phase I Complete
+**Student:** Nyla Crespo
 
----
+**Project:** [Offer Tracker](https://github.com/shanker-codepath/offer-tracker)
+
+**Chosen issue:** [#3 — Add an empty state for zero filter/search results](https://github.com/shanker-codepath/offer-tracker/issues/3)
+
+**Fork:** [ncrespo5/offer-tracker](https://github.com/ncrespo5/offer-tracker)
+
+**Status:** Phase III implementation complete; student code review and course submission pending.
+
+## Project Selection Update
+
+This contribution now focuses on Offer Tracker issue #3 instead of the previously listed DrumBeat crash-cymbal icon issue. The earlier README is preserved in this repository's Git history.
+
+Another contributor has already opened [PR #28](https://github.com/shanker-codepath/offer-tracker/pull/28) for the same issue. This implementation is being completed separately for class; that PR belongs to another contributor and is not this submission. No maintainer approval or issue assignment is claimed.
 
 ## Why I Chose This Issue
 
-I chose this issue because I have an interest in UI/UX design and frontend development.
-
----
+This issue fits my interest in UI/UX design and frontend development. An empty table gives users no explanation or next step. A clear message and a way to reset filters make the application list easier to use.
 
 ## Understanding the Issue
 
 ### Problem Description
 
-The crash symbol object doesn't have a relevant icon which reflects the object's purpose
+When a search or status filter produces no matching applications, `ApplicationTable` maps over an empty array and renders no table rows. Users see only the table headings.
 
 ### Expected Behavior
 
-There should be a relevant icon for the crash selection
-
-### Current Behavior
-
-Currently, the icon is a wavelength, not too relevant to a crash cymbal
+When filters are active and no results match, show “No applications match your filters” and a “Clear filters” link. Clearing filters should restore the list and reset the visible form controls.
 
 ### Affected Components
 
-[Which parts of the codebase are involved?]
-
----
+- `src/app/applications/page.tsx`: reads query parameters and passes filter state to the table.
+- `src/components/applications/ApplicationTable.tsx`: displays the empty-state message and link.
+- `src/components/applications/FilterBar.tsx`: keeps search, status, and sort controls aligned with navigation.
 
 ## Reproduction Process
 
 ### Environment Setup
 
-[Notes on setting up your local development environment - challenges you faced, how you solved them]
+Work started from upstream commit `ecbffd517ae79aaf607196b1019438dc568ff5f3`. Dependencies were installed with `npm ci`. Validation used Node.js 24.19.0, Prisma/SQLite, Vitest, and React Testing Library.
+
+For the local preview, `.env.example` was copied to `.env`, an empty `prisma/dev.db` file was created before migration, and `DATABASE_URL=file:./dev.db` was explicitly supplied to `npm run dev` so the seed script could read it. The app seeded 18 sample applications.
 
 ### Steps to Reproduce
 
-1. [Step 1]
-2. [Step 2]
-3. [Observed result]
+1. Open `/applications`.
+2. Search for `no-such-company` and apply the filter.
+3. Before the fix, the table contains its headings but no result message or recovery link.
+4. After the fix, the empty-state message and “Clear filters” link appear.
+5. Click “Clear filters”; the URL returns to `/applications`, the application rows return, and all filter controls reset.
 
 ### Reproduction Evidence
 
-- **Commit showing reproduction:** [Link to commit in your fork]
-- **Screenshots/logs:** [If applicable]
-- **My findings:** [What you discovered during reproduction]
-
----
+Seven regression cases were added before the production changes. Five failed against the original implementation: four empty-state scenarios and the visible-control reset scenario. The other two cases verified unaffected behavior.
 
 ## Solution Approach
 
-### Analysis
+**Understand:** Users need an explanation and a recovery action when their filters return no applications.
 
-[Your analysis of the root cause - what's causing the issue?]
+**Match:** Follow the existing table markup, Tailwind classes, Next.js links, and component-test patterns.
 
-### Proposed Solution
+**Plan and implementation:**
 
-[High-level description of your fix approach]
+1. Pass a `hasFilters` boolean from the applications page to the table.
+2. Render an empty-state row spanning all six columns when the result array is empty and filters are active.
+3. Link to `/applications` to remove the query parameters.
+4. Key the uncontrolled search, status, and sort controls by their incoming values so navigation updates their displayed values.
+5. Add regression tests and verify the real browser flow.
 
-### Implementation Plan
-
-Using UMPIRE framework (adapted):
-
-**Understand:** [Restate the problem]
-
-**Match:** [What similar patterns/solutions exist in the codebase?]
-
-**Plan:** [Step-by-step implementation plan]
-1. [Modify file X to do Y]
-2. [Add function Z]
-3. [Update tests]
-
-**Implement:** [Link to your branch/commits as you work]
-
-**Review:** [Self-review checklist - does it follow the project's contribution guidelines?]
-
-**Evaluate:** [How will you verify it works?]
-
----
+**Scope decisions:** Keep populated rows unchanged. Do not show a misleading “clear filters” action for an unfiltered empty database. Whitespace searches count as active filters because the existing data query treats them as search input. No database schema or dependency changes were made.
 
 ## Testing Strategy
 
-### Unit Tests
+### Automated Tests
 
-- [ ] Test case 1: [Description]
-- [ ] Test case 2: [Description]
-- [ ] Test case 3: [Description]
+New coverage in `tests/component/ApplicationsPage.test.tsx`:
 
-### Integration Tests
+- [x] Search with zero matches shows the message and reset link.
+- [x] Status filter with zero matches shows the message and reset link.
+- [x] Combined search and status filters show the empty state.
+- [x] Whitespace-only search can be cleared.
+- [x] Empty results without search/status filters do not show misleading filter messaging.
+- [x] Matching applications retain their detail links and normal rows.
+- [x] Search, status, and sort controls reset when query parameters are cleared.
 
-- [ ] Integration scenario 1
-- [ ] Integration scenario 2
+### Validation Results — September 29, 2026
 
-### Manual Testing
+| Check | Result |
+| --- | --- |
+| `npm run lint` | Passed |
+| `npm run typecheck` | Passed |
+| Full Vitest suite | 21 tests passed across 5 files, using the local database workaround below |
+| `git diff --check` | Passed |
+| Browser: no-match search + Offer status + company sort | Message and reset link displayed |
+| Browser: click Clear filters | All 18 sample rows returned; search blank, status All statuses, sort Date added (newest) |
 
-[What you tested manually and results]
+### Local Test Setup Limitation
 
----
+The unchanged upstream test setup deletes `prisma/test.db` before running migrations. On this machine, Prisma reported a schema-engine error when the database file did not exist. For validation only, `tests/globalSetup.ts` temporarily imported `writeFileSync` from `node:fs` and called `writeFileSync(testDbPath, "")` immediately before `execSync("npx prisma migrate deploy", ...)`. The full suite then passed. The original setup file was restored afterward and is not part of the contribution commit. An unmodified `npm test` still encounters this local setup limitation on this machine; the 21-test pass is explicitly qualified by that workaround.
 
 ## Implementation Notes
 
-### Week [X] Progress
+### September 29, 2026 Progress
 
-[What you built this week, challenges faced, decisions made]
+Implemented the filtered empty state, query-reset navigation, and visible-control reset behavior. Added seven component/page regression cases, ran the project checks, and verified the recovery flow in a browser.
 
-### Week [Y] Progress
+### Challenges Faced
 
-[Continue documenting as you work]
+- Uncontrolled inputs only use `defaultValue` on mount. Keys tied to the incoming filter values allow them to remount when navigation clears the query.
+- The local Prisma test setup failed before test execution. Creating the empty database file before migration allowed validation without expanding the issue fix into test-infrastructure changes.
+- Another contributor is working on the same issue. This log identifies that overlap and keeps their PR separate from this class implementation.
 
 ### Code Changes
 
-- **Files modified:** [List]
-- **Key commits:** [Links to important commits]
-- **Approach decisions:** [Why you chose certain approaches]
-
----
+- **Development branch:** [codex/issue-3-empty-state](https://github.com/ncrespo5/offer-tracker/tree/codex/issue-3-empty-state)
+- **Implementation and regression tests:** [Commit 2bc0aca](https://github.com/ncrespo5/offer-tracker/commit/2bc0aca6eabdfd5e7db9336d8f9bf1bdcfd385e4)
+- **Files changed:** the three components/page listed above and `tests/component/ApplicationsPage.test.tsx`.
 
 ## Pull Request
 
-**PR Link:** [GitHub PR URL when submitted]
+**PR link:** Not opened for this implementation yet.
 
-**PR Description:** [Draft or final PR description - much of the content above can be adapted]
+**Planned description:** Add an explanatory empty state when search/status filters return no applications, provide a clear-filters link, and ensure the visible controls reset after navigation. Includes regression coverage.
 
-**Maintainer Feedback:**
-- [Date]: [Summary of feedback received]
-- [Date]: [How you addressed it]
+**Maintainer feedback:** None received on this implementation.
 
-**Status:** [Awaiting review / Iterating / Approved / Merged]
-
----
+**Next step:** Review and understand the changes before preparing the Phase IV upstream PR; acknowledge the existing duplicate work when submitting.
 
 ## Learnings & Reflections
 
-### Technical Skills Gained
+Technical concepts demonstrated by this work include conditional table rendering, query-driven navigation, the difference between input defaults and current values, and regression tests that fail before a fix and pass afterward.
 
-[What you learned technically]
+**Student reflection pending:** Review the code and add a personal note about the most useful lesson, the hardest part, and what to do differently next time. AI assisted with implementation, testing, and documentation; personal understanding should be confirmed before submitting.
 
-### Challenges Overcome
+## Phase III Submission Checklist
 
-[What was hard and how you solved it]
-
-### What I'd Do Differently Next Time
-
-[Reflection on your process]
-
----
+- [x] Working implementation available on the fork's development branch.
+- [x] Implementation notes, code link, and testing evidence recorded.
+- [x] Local test setup limitation documented.
+- [ ] Review and understand the implementation and add personal reflections.
+- [ ] Attach a screenshot of a Slack participation post made within the 7 days before submission.
+- [ ] Submit this Contribution README in the course portal and indicate **“Phase III Complete.”**
 
 ## Resources Used
 
-- [Link to helpful documentation]
-- [Tutorial or Stack Overflow post that helped]
-- [GitHub issues or discussions that helped]
+- [Offer Tracker issue #3](https://github.com/shanker-codepath/offer-tracker/issues/3)
+- [Project contribution guidelines](https://github.com/shanker-codepath/offer-tracker/blob/main/CONTRIBUTING.md)
+- Existing project component tests and the installed Next.js Link documentation.
