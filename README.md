@@ -131,7 +131,7 @@ Implemented the filtered empty state, query-reset navigation, and visible-contro
 
 **Maintainer feedback:** No maintainer review, inline review comments, or discussion comments were present on PR #29 as of November 18.
 
-**Next steps:** Fill in the PR description and include before-and-after screenshots for the visual change. Ask whether PR #29 should proceed in light of the overlap with PR #28 before requesting review. Record any feedback or follow-up checks here.
+**Next steps:** The draft PR description includes the feature summary and test results. Before-and-after screenshots for the visual change are pending. Ask whether PR #29 should proceed in light of the overlap with PR #28 before requesting review. Record any feedback or follow-up checks here.
 
 ## Learnings & Reflections
 
