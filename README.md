@@ -8,13 +8,13 @@
 
 **Fork:** [ncrespo5/offer-tracker](https://github.com/ncrespo5/offer-tracker)
 
-**Status:** Phase III implementation complete; student code review and course submission pending.
+**Status:** Phase IV in progress. [Upstream PR #29](https://github.com/shanker-codepath/offer-tracker/pull/29) is open as a draft. The implementation and regression tests are complete.
 
 ## Project Selection Update
 
 This contribution now focuses on Offer Tracker issue #3 instead of the previously listed DrumBeat crash-cymbal icon issue. The earlier README is preserved in this repository's Git history.
 
-Another contributor has already opened [PR #28](https://github.com/shanker-codepath/offer-tracker/pull/28) for the same issue. This implementation is being completed separately for class; that PR belongs to another contributor and is not this submission. No maintainer approval or issue assignment is claimed.
+This class implementation is the work in [PR #29](https://github.com/shanker-codepath/offer-tracker/pull/29). Another contributor opened [PR #28](https://github.com/shanker-codepath/offer-tracker/pull/28) for the same issue. The two PRs overlap. Maintainer guidance on whether #29 should proceed to review is pending.
 
 ## Why I Chose This Issue
 
@@ -99,7 +99,7 @@ New coverage in `tests/component/ApplicationsPage.test.tsx`:
 
 ### Local Test Setup Limitation
 
-The unchanged upstream test setup deletes `prisma/test.db` before running migrations. On this machine, Prisma reported a schema-engine error when the database file did not exist. For validation only, `tests/globalSetup.ts` temporarily imported `writeFileSync` from `node:fs` and called `writeFileSync(testDbPath, "")` immediately before `execSync("npx prisma migrate deploy", ...)`. The full suite then passed. The original setup file was restored afterward and is not part of the contribution commit. An unmodified `npm test` still encounters this local setup limitation on this machine; the 21-test pass is explicitly qualified by that workaround.
+The unchanged upstream test setup deletes `prisma/test.db` before running migrations. On this machine, Prisma reported a schema-engine error when the database file did not exist. For validation only, `tests/globalSetup.ts` temporarily imported `writeFileSync` from `node:fs` and called `writeFileSync(testDbPath, "")` immediately before `execSync("npx prisma migrate deploy", ...)`. The full suite then passed. The original setup file was restored afterward and is not part of the contribution commit. This limitation applies to the September 29 test run. The November 18 rerun below passed with the unmodified test setup.
 
 ## Implementation Notes
 
@@ -121,13 +121,17 @@ Implemented the filtered empty state, query-reset navigation, and visible-contro
 
 ## Pull Request
 
-**PR link:** Not opened for this implementation yet.
+**PR link:** [Offer Tracker PR #29 — fix: show empty state for unmatched application filters](https://github.com/shanker-codepath/offer-tracker/pull/29)
 
-**Planned description:** Add an explanatory empty state when search/status filters return no applications, provide a clear-filters link, and ensure the visible controls reset after navigation. Includes regression coverage.
+**Status:** Open draft. Review has yet to be requested.
 
-**Maintainer feedback:** None received on this implementation.
+**Contribution summary:** On the applications page, an active search or status filter that returns zero rows now shows “No applications match your filters” with a **Clear filters** link. The link restores the full list and resets the visible search, status, and sort controls. Seven component regression cases cover the empty state, filter reset, and normal rows.
 
-**Next step:** Review and understand the changes before preparing the Phase IV upstream PR; acknowledge the existing duplicate work when submitting.
+**Validation — November 18, 2026:** At [commit `2bc0aca`](https://github.com/ncrespo5/offer-tracker/commit/2bc0aca6eabdfd5e7db9336d8f9bf1bdcfd385e4), `npm run lint`, `npm run typecheck`, and `git diff --check` passed. Unmodified `npm test` passed **21 tests across five files**. In the documented September 29 browser check, clearing filters restored all 18 seeded applications and the default control values.
+
+**Maintainer feedback:** No maintainer review, inline review comments, or discussion comments were present on PR #29 as of November 18.
+
+**Next steps:** Fill in the PR description and include before-and-after screenshots for the visual change. Ask whether PR #29 should proceed in light of the overlap with PR #28 before requesting review. Record any feedback or follow-up checks here.
 
 ## Learnings & Reflections
 
